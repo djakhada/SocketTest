@@ -44,37 +44,17 @@ public class ClientWindow extends JFrame {
 
 	
 	public void connectToServer(String ip, int port, String name) throws UnknownHostException, IOException {
-		//Scanner scn = new Scanner(System.in); 
 		try {
 		s = new Socket (InetAddress.getByName(ip), port);
 		dis = new DataInputStream(s.getInputStream()); 
 		dos = new DataOutputStream(s.getOutputStream()); 
 		System.out.println("Client: Erfolgreich zum Server: ["+s+"] verbunden.");
 		dos.writeUTF("join:"+name);
+		//dos.writeUTF("join:0123456789");
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
 		
-        /*while(true) {
-        	/*System.out.println("Client: Erfolgreich verbunden");
-        	System.out.println(dis.readUTF());
-        	//Sendeformat wird sein "name, blablabla, blabla"
-        	//dos.writeUTF(name);
-        	
-        	String tosend = scn.nextLine();
-        	System.out.println("Sende n‰chste Line: " + tosend);
-        	dos.writeUTF(tosend);
-        	
-        	if(tosend.equals("quit")) {
-        		System.out.println("Client: Schlieﬂe Verbindung zum Server");
-        		s.close();
-        		System.out.println("Client: Verbindung geschlossen");
-        		break;
-        	}
-        }
-        
-        dis.close();
-        dos.close();*/
 	}
 	
 	/**
@@ -117,7 +97,7 @@ public class ClientWindow extends JFrame {
 		connectPanel.add(lblName);
 		
 		txtNAME = new JTextField();
-		txtNAME.setText("Test");
+		txtNAME.setText("Djamal");
 		txtNAME.setColumns(10);
 		txtNAME.setBounds(74, 64, 133, 20);
 		connectPanel.add(txtNAME);
@@ -147,12 +127,19 @@ public class ClientWindow extends JFrame {
 		btnVerbinden.setBounds(10, 92, 197, 23);
 		connectPanel.add(btnVerbinden);
 		
-		JButton btnVerbindungTrennen = new JButton("Testmessage an Server");
+		JButton btnVerbindungTrennen = new JButton("Verbindung Trennen");
 		btnVerbindungTrennen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					System.out.println("Client: Trennen");
 					dos.writeUTF("quit");
+					
+					dis.close();
+			        dos.close();
+			        s.close();
+			        
+			        System.out.println("Client: Erfolgreich getrennt");
+			        btnVerbinden.setEnabled(true);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}

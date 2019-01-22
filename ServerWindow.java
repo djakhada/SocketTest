@@ -5,6 +5,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JButton;
@@ -31,8 +32,8 @@ public class ServerWindow extends JFrame {
 	private JTextField textField_3;
 	private JTable table;
 	
+	private Spieler[] spieler = new Spieler[25];
 	
-
 	/**
 	 * Launch the application.
 	 */
@@ -49,7 +50,7 @@ public class ServerWindow extends JFrame {
 		});
 	}
 	
-	public void runServer(int startKapital, int kredit, float zinssatz, boolean startKapitalKredit, int maximaleSpieleranzahl) throws IOException{
+	public void runServer(int startKapital, int maximalerKredit, float zinssatz, boolean startKapitalKredit, int maximaleSpieleranzahl, Spieler[] arr) throws IOException{
 		ServerSocket ss = new ServerSocket(23554);
 		System.out.println("Server: Serverstart..");
 		while (true) {
@@ -65,7 +66,7 @@ public class ServerWindow extends JFrame {
 				
 				System.out.println("Server: Neuen Thread für diesen Client erstellen");
 				
-				Thread t = new ClientHandler(s, dis, dos);
+				Thread t = new ClientHandler(s, dis, dos, arr);
 				
 				t.start();
 				
@@ -154,7 +155,7 @@ public class ServerWindow extends JFrame {
 					@Override
 					public void run() {
 						try {
-							runServer(250000,1,1.0f,true,5);
+							runServer(250000,1,1.0f,true,5, spieler);
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -191,6 +192,11 @@ public class ServerWindow extends JFrame {
 		});
 		
 		JButton btnNchsteRunde = new JButton("N\u00E4chste Runde");
+		btnNchsteRunde.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(null,spieler[0].getName());
+			}
+		});
 		btnNchsteRunde.setEnabled(false);
 		btnNchsteRunde.setBounds(6, 186, 157, 23);
 		contentPane.add(btnNchsteRunde);
