@@ -26,13 +26,14 @@ import java.net.*;
 public class ServerWindow extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField textField;
-	private JTextField textField_1;
-	private JTextField textField_2;
-	private JTextField textField_3;
+	private JTextField txtStartkapital;
+	private JTextField txtKreditzinssatz;
+	private JTextField txtMaximalKredit;
+	private JTextField txtMaximaleSpieler;
 	private JTable table;
+	private int Spieleranzahl = 0;
 	
-	private Spieler[] spieler = new Spieler[25];
+	public List<Spieler> spieler = new ArrayList<>();
 	
 	/**
 	 * Launch the application.
@@ -50,11 +51,13 @@ public class ServerWindow extends JFrame {
 		});
 	}
 	
-	public void runServer(int startKapital, int maximalerKredit, float zinssatz, boolean startKapitalKredit, int maximaleSpieleranzahl, Spieler[] arr) throws IOException{
+	public void runServer(int startKapital, int maximalerKredit, float zinssatz, boolean startKapitalKredit, List<Spieler> spieler, int maximaleSpieleranzahl) throws IOException{
 		ServerSocket ss = new ServerSocket(23554);
-		System.out.println("Server: Serverstart..");
+		System.out.println("Server: Serverstart folgt..");
 		while (true) {
 			Socket s = null;
+			System.out.println("Server: Server gestartet. Werte: Startkapital: "+startKapital+" Maximaler Kredit: "+maximalerKredit+" "
+					+ "Kreditzinssatz: " + zinssatz + "% Maximale Spieler: "+maximaleSpieleranzahl);
 			System.out.println("Server: Halte Ausschau nach Clients..");
 			try {
 				s = ss.accept();
@@ -66,7 +69,7 @@ public class ServerWindow extends JFrame {
 				
 				System.out.println("Server: Neuen Thread für diesen Client erstellen");
 				
-				Thread t = new ClientHandler(s, dis, dos, arr);
+				Thread t = new ClientHandler(this, s, dis, dos, spieler, startKapital, maximalerKredit, startKapitalKredit, maximaleSpieleranzahl);
 				
 				t.start();
 				
@@ -90,27 +93,28 @@ public class ServerWindow extends JFrame {
 		lblStartkapital.setBounds(10, 11, 84, 14);
 		contentPane.add(lblStartkapital);
 		
-		textField = new JTextField();
-		textField.setText("250000");
-		textField.setBounds(104, 8, 59, 20);
-		contentPane.add(textField);
-		textField.setColumns(10);
+		txtStartkapital = new JTextField();
+		txtStartkapital.setText("250000");
+		txtStartkapital.setBounds(104, 8, 59, 20);
+		contentPane.add(txtStartkapital);
+		txtStartkapital.setColumns(10);
 		
-		JCheckBox chckbxNewCheckBox = new JCheckBox("Startkapital ist Kredit");
-		chckbxNewCheckBox.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		chckbxNewCheckBox.setBounds(6, 83, 140, 23);
-		contentPane.add(chckbxNewCheckBox);
+		JCheckBox checkStartkapitalKredit = new JCheckBox("Startkapital ist Kredit");
+		checkStartkapitalKredit.setSelected(true);
+		checkStartkapitalKredit.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		checkStartkapitalKredit.setBounds(6, 83, 140, 23);
+		contentPane.add(checkStartkapitalKredit);
 		
 		JLabel lblZinssatz = new JLabel("Kreditzinssatz");
 		lblZinssatz.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		lblZinssatz.setBounds(9, 62, 98, 14);
 		contentPane.add(lblZinssatz);
 		
-		textField_1 = new JTextField();
-		textField_1.setText("9");
-		textField_1.setColumns(10);
-		textField_1.setBounds(104, 59, 59, 20);
-		contentPane.add(textField_1);
+		txtKreditzinssatz = new JTextField();
+		txtKreditzinssatz.setText("9");
+		txtKreditzinssatz.setColumns(10);
+		txtKreditzinssatz.setBounds(104, 59, 59, 20);
+		contentPane.add(txtKreditzinssatz);
 		
 		JLabel lblMaximalerKreditIn = new JLabel("Maximaler Kredit");
 		lblMaximalerKreditIn.setFont(new Font("Tahoma", Font.PLAIN, 11));
@@ -121,11 +125,11 @@ public class ServerWindow extends JFrame {
 		label.setBounds(167, 11, 16, 14);
 		contentPane.add(label);
 		
-		textField_2 = new JTextField();
-		textField_2.setText("500000");
-		textField_2.setColumns(10);
-		textField_2.setBounds(104, 33, 59, 20);
-		contentPane.add(textField_2);
+		txtMaximalKredit = new JTextField();
+		txtMaximalKredit.setText("500000");
+		txtMaximalKredit.setColumns(10);
+		txtMaximalKredit.setBounds(104, 33, 59, 20);
+		contentPane.add(txtMaximalKredit);
 		
 		JLabel label_1 = new JLabel("\u20AC");
 		label_1.setBounds(167, 36, 16, 14);
@@ -135,11 +139,11 @@ public class ServerWindow extends JFrame {
 		label_2.setBounds(167, 62, 16, 14);
 		contentPane.add(label_2);
 		
-		textField_3 = new JTextField();
-		textField_3.setText("9");
-		textField_3.setColumns(10);
-		textField_3.setBounds(104, 124, 59, 20);
-		contentPane.add(textField_3);
+		txtMaximaleSpieler = new JTextField();
+		txtMaximaleSpieler.setText("5");
+		txtMaximaleSpieler.setColumns(10);
+		txtMaximaleSpieler.setBounds(104, 124, 59, 20);
+		contentPane.add(txtMaximaleSpieler);
 		
 		JLabel lblMaximaleSpieler = new JLabel("Maximale Spieler");
 		lblMaximaleSpieler.setFont(new Font("Tahoma", Font.PLAIN, 11));
@@ -155,9 +159,13 @@ public class ServerWindow extends JFrame {
 					@Override
 					public void run() {
 						try {
-							runServer(250000,1,1.0f,true,5, spieler);
+							int sKapital = Integer.parseInt(txtStartkapital.getText());
+							int mKredit = Integer.parseInt(txtMaximalKredit.getText());
+							float zSatz = Float.parseFloat(txtKreditzinssatz.getText());
+							boolean startKapitalKredit = checkStartkapitalKredit.isSelected();
+							int maxSpieler = Integer.parseInt(txtMaximaleSpieler.getText());
+							runServer(sKapital, mKredit, zSatz, startKapitalKredit, spieler, maxSpieler);
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -191,15 +199,15 @@ public class ServerWindow extends JFrame {
 			}
 		});
 		
-		JButton btnNchsteRunde = new JButton("N\u00E4chste Runde");
-		btnNchsteRunde.addActionListener(new ActionListener() {
+		JButton btnNaechsteRunde = new JButton("N\u00E4chste Runde");
+		btnNaechsteRunde.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(null,spieler[0].getName());
+				JOptionPane.showMessageDialog(null,spieler.get(0).Name);
 			}
 		});
-		btnNchsteRunde.setEnabled(false);
-		btnNchsteRunde.setBounds(6, 186, 157, 23);
-		contentPane.add(btnNchsteRunde);
+		btnNaechsteRunde.setEnabled(false);
+		btnNaechsteRunde.setBounds(6, 186, 157, 23);
+		contentPane.add(btnNaechsteRunde);
 		table.getColumnModel().getColumn(4).setPreferredWidth(100);
 	}
 }

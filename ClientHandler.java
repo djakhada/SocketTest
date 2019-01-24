@@ -1,4 +1,6 @@
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -10,14 +12,44 @@ public class ClientHandler extends Thread
 	final DataInputStream dis;
 	final DataOutputStream dos;
 	final Socket s;
-	Spieler[] arr = new Spieler[25];
-	public String name;
 	
-	public ClientHandler(Socket s, DataInputStream dis, DataOutputStream dos, Spieler[] arr) {
+	private final ServerWindow sw;
+	
+	final int startKapital;
+	final int maximalerKredit;
+	final boolean startkapitalKredit;
+	final int maximaleSpielerAnzahl;
+	int spielerAnzahl;
+	String name;
+	List<Spieler> spieler = new ArrayList<>();
+	
+	public ClientHandler(ServerWindow sw, Socket s, DataInputStream dis, DataOutputStream dos, List<Spieler> spielerListe, int startKapital, int maximalerKredit, boolean startkapitalKredit, int maximaleSpielerAnzahl) {
+		this.sw = sw;
 		this.s = s;
 		this.dis = dis;
 		this.dos = dos;
-		this.arr = arr;
+		this.spieler = spielerListe;
+		this.startKapital = startKapital;
+		this.maximalerKredit = maximalerKredit;
+		this.startkapitalKredit = startkapitalKredit;
+		this.maximaleSpielerAnzahl = maximaleSpielerAnzahl;
+	}
+
+	public void addSpieler(List<Spieler> spielerListe, String Name,  int startKapital, boolean startkapitalKredit) {
+		if(spielerListe.size()<maximaleSpielerAnzahl) {
+			Spieler s;
+			if(startkapitalKredit) {
+				 s = new Spieler(Name, startKapital, startKapital);
+				
+			}else {
+				s = new Spieler(Name, startKapital, 0);
+				
+			}
+			spielerListe.add(s);
+			System.out.println("Spieler "+s.Name+" wurde der Spielerliste hinzugefügt.("+spielerListe.size()+"/"+maximaleSpielerAnzahl+")");
+		}else{
+			System.out.println("Spieler "+Name+" wurde der Spielerliste nicht hinzugefügt, da das Spiel voll ist.");
+		}
 	}
 	
 	@Override
@@ -38,13 +70,7 @@ public class ClientHandler extends Thread
 				}else if(received.contains("join:")){
 					name = received.substring(5);
 					System.out.println("Server: Spieler '"+name+"' ist dem Spiel beigetreten.");
-					//arr[0].setName(name);
-					//ServerWindow.spieler[0] = new Spieler(name, 250000, 250000);
-					
-					//"ID", "Name", "Kapital", "Kredit", "Geld\u00E4nderung [R]", "IP"
-					//Object[] row = { "0",name,"0","0","0","localhoist" };
-					//DefaultTableModel model = (DefaultTableModel)ServerWindow.table.getModel();
-					//model.addRow(row);
+					addSpieler(spieler, name, startKapital, startkapitalKredit);
 				}
 			}catch(IOException e) {
 				e.printStackTrace();

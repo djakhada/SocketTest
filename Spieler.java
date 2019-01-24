@@ -1,6 +1,6 @@
 
 public class Spieler {
-	private String Name;
+	public String Name;
 	private int Kapital;
 	private int Kredit;
 	
