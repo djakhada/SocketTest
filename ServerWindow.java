@@ -51,7 +51,7 @@ public class ServerWindow extends JFrame {
 		});
 	}
 	
-	public void runServer(int startKapital, int maximalerKredit, float zinssatz, boolean startKapitalKredit, List<Spieler> spieler, int maximaleSpieleranzahl) throws IOException{
+	public void runServer(int startKapital, int maximalerKredit, float zinssatz, boolean startKapitalKredit, int maximaleSpieleranzahl) throws IOException{
 		ServerSocket ss = new ServerSocket(23554);
 		System.out.println("Server: Serverstart folgt..");
 		while (true) {
@@ -69,7 +69,7 @@ public class ServerWindow extends JFrame {
 				
 				System.out.println("Server: Neuen Thread für diesen Client erstellen");
 				
-				Thread t = new ClientHandler(this, s, dis, dos, spieler, startKapital, maximalerKredit, startKapitalKredit, maximaleSpieleranzahl);
+				Thread t = new ClientHandler(this, s, dis, dos, startKapital, maximalerKredit, startKapitalKredit, maximaleSpieleranzahl);
 				
 				t.start();
 				
@@ -77,6 +77,16 @@ public class ServerWindow extends JFrame {
 				s.close();
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public void updateTable() {
+		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		model.setRowCount(0);
+		for(int i=0;i<spieler.size();i++) {
+			Spieler s = spieler.get(i);
+			model.addRow(new Object[] {i, s.Name, s.Kapital, s.Kredit, s.Geldaenderung});
+			//new DefaultTableModel(new Object[][] {},new String[] {"ID", "Name", "Kapital", "Kredit", "Geld\u00E4nderung [R]"})
 		}
 	}
 	
@@ -164,7 +174,7 @@ public class ServerWindow extends JFrame {
 							float zSatz = Float.parseFloat(txtKreditzinssatz.getText());
 							boolean startKapitalKredit = checkStartkapitalKredit.isSelected();
 							int maxSpieler = Integer.parseInt(txtMaximaleSpieler.getText());
-							runServer(sKapital, mKredit, zSatz, startKapitalKredit, spieler, maxSpieler);
+							runServer(sKapital, mKredit, zSatz, startKapitalKredit, maxSpieler);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -185,19 +195,19 @@ public class ServerWindow extends JFrame {
 		scrollPane.setViewportView(table);
 		table.setModel(new DefaultTableModel(
 			new Object[][] {
-				{null, null, null, null, null, null},
 			},
 			new String[] {
-				"ID", "Name", "Kapital", "Kredit", "Geld\u00E4nderung [R]", "IP"
+				"ID", "Name", "Kapital", "Kredit", "Geld\u00E4nderung [R]"
 			}
 		) {
 			boolean[] columnEditables = new boolean[] {
-				false, false, true, true, false, false
+				false, false, true, true, false
 			};
 			public boolean isCellEditable(int row, int column) {
 				return columnEditables[column];
 			}
 		});
+		table.getColumnModel().getColumn(4).setPreferredWidth(100);
 		
 		JButton btnNaechsteRunde = new JButton("N\u00E4chste Runde");
 		btnNaechsteRunde.addActionListener(new ActionListener() {
@@ -208,6 +218,5 @@ public class ServerWindow extends JFrame {
 		btnNaechsteRunde.setEnabled(false);
 		btnNaechsteRunde.setBounds(6, 186, 157, 23);
 		contentPane.add(btnNaechsteRunde);
-		table.getColumnModel().getColumn(4).setPreferredWidth(100);
 	}
 }

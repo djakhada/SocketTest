@@ -15,6 +15,12 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner; 
 
+class ResponseHandler extends Thread {
+	public ResponseHandler(String Name) {
+		//hier die antworten wie bspw full oder so joined handlen
+	}
+}
+
 public class ClientWindow extends JFrame {
 
 	private JPanel contentPane;
@@ -50,7 +56,7 @@ public class ClientWindow extends JFrame {
 		dos = new DataOutputStream(s.getOutputStream()); 
 		System.out.println("Client: Erfolgreich zum Server: ["+s+"] verbunden.");
 		dos.writeUTF("join:"+name);
-		//dos.writeUTF("join:0123456789");
+		
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
